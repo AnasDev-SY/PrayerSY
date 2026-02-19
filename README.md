@@ -26,7 +26,7 @@
 
 ## 📸 لقطة من التطبيق
 <p align="center">
-  <img src="your-image-url.png" alt="Alt Text" width="500">
+  <img src="screenshot.png" alt="Alt Text" width="500">
 </p>
 ## 📄 الترخيص
 هذا المشروع مفتوح المصدر ومتاح تحت رخصة [MIT](LICENSE).

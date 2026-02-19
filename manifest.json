@@ -1,0 +1,15 @@
+{
+  "name": "صلاتي سوريا",
+  "short_name": "صلاتي",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#fef7ff",
+  "theme_color": "#6750a4",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2972/2972161.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

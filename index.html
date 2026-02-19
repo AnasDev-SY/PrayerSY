@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#6750a4">
-    <link rel="manifest" href="data:application/manifest+json,{"name":"صلاتي سوريا","short_name":"صلاتي","start_url":".","display":"standalone","background_color":"#fef7ff","theme_color":"#6750a4","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/2972/2972161.png","sizes":"512x512","type":"image/png"}]}">
-    
+    <link rel="manifest" href="manifest.json">    
     <title>صلاتي - سوريا</title>
     <style>
         :root {
@@ -182,7 +181,7 @@
         });
         // تسجيل Service Worker بسيط لجعل المتصفح يقبل التثبيت
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch", (e) => {});');
+    navigator.serviceWorker.register('sw.js');
 }
 
     </script>

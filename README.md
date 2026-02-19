@@ -14,7 +14,7 @@
 ---
 
 ### 📸 لقطة من التطبيق
-<img src="screenshot.png" alt="App Screenshot" width="250" style="border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+<img src="screenshot.png" alt="App Screenshot" width="250" style="border-radius: 30px; box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
 
 </div>
 

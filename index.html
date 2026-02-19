@@ -181,6 +181,11 @@
                 document.getElementById('install-btn').style.display = 'none';
             }
         });
+        // تسجيل Service Worker بسيط لجعل المتصفح يقبل التثبيت
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch", (e) => {});');
+}
+
     </script>
 </body>
 </html>

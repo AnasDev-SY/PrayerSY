@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6750a4">
     
     <link rel="icon" type="image/png" href="icon.png">
@@ -10,50 +10,49 @@
     <link rel="apple-touch-icon" href="icon.png">
 
     <title>صلاتي - دقة المواعيد</title>
-    :root {
-        --primary: #6750a4;
-        --secondary: #eaddff;
-        --bg: #fef7ff;
-        --text: #1c1b1f;
-    }
 
-    body { 
-        font-family: 'Segoe UI', sans-serif; 
-        background-color: #f0f0f0; 
-        display: flex; 
-        justify-content: center; 
-        align-items: center; 
-        min-height: 100vh; 
-        margin: 0; 
-        padding: 15px; /* مسافة أمان للجسم ككل */
-        box-sizing: border-box;
-    }
+    <style>
+        :root {
+            --primary: #6750a4;
+            --secondary: #eaddff;
+            --bg: #fef7ff;
+            --text: #1c1b1f;
+        }
 
-    .app-container { 
-        background-color: var(--bg);
-        width: 100%; 
-        max-width: 400px; 
-        /* تم تعديل الارتفاع ليكون أكثر مرونة على الهواتف */
-        height: auto; 
-        max-height: 92vh; 
-        border-radius: 28px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        display: flex; 
-        flex-direction: column;
-        overflow: hidden;
-        /* هذا السطر يمنع الالتصاق بالحواف */
-        margin: 30px auto; 
-    }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #f0f0f0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 15px; /* مسافة أمان لمنع الالتصاق بالحواف */
+            box-sizing: border-box;
+        }
 
-    header { 
-        background-color: var(--primary); 
-        color: white; 
-        padding: 25px 20px; 
-        text-align: center; 
-        border-radius: 0 0 24px 24px;
-        /* لضمان عدم خروج النص عن الحواف في الشاشات الصغيرة جداً */
-        word-wrap: break-word; 
-    }
+        .app-container { 
+            background-color: var(--bg);
+            width: 100%; 
+            max-width: 400px; 
+            height: auto; 
+            max-height: 94vh; 
+            border-radius: 28px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            display: flex; 
+            flex-direction: column;
+            overflow: hidden;
+            margin: auto; /* لضمان التوسط الدقيق */
+        }
+
+        header { 
+            background-color: var(--primary); 
+            color: white; 
+            padding: 25px 20px; 
+            text-align: center; 
+            border-radius: 0 0 24px 24px;
+            word-wrap: break-word; 
+        }
 
         #install-btn {
             display: none;
@@ -122,7 +121,6 @@
     </div>
 
     <script>
-        // تسجيل الـ Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
@@ -215,7 +213,6 @@
             }
         }
 
-        // منطق تثبيت التطبيق (PWA)
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();

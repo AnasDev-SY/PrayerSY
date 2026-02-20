@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#6750a4">
-    <link rel="manifest" href="manifest.json">    
-    <link rel="icon" type="image/png" href="icon.png">
-    <title>صلاتي - سوريا</title>
+    <title>صلاتي - دقة المواعيد</title>
     <style>
         :root {
             --primary: #6750a4;
@@ -37,39 +35,20 @@
             text-align: center; border-radius: 0 0 24px 24px;
         }
 
-        #install-btn {
-            display: none;
-            background: #fff; color: var(--primary);
-            border: none; padding: 8px 15px; border-radius: 20px;
-            font-weight: bold; margin-top: 10px; cursor: pointer;
-        }
-        
-        .selector-container { 
+        .search-container { 
             padding: 20px; 
-            display: flex;
+            display: flex; gap: 8px;
             justify-content: center;
         }
 
-        select {
-            width: 80%; 
-            padding: 12px; 
-            border-radius: 16px;
-            border: 2px solid var(--secondary); 
-            background-color: white;
-            font-size: 1.1rem; 
-            color: var(--primary); 
-            font-weight: bold;
-            outline: none;
-            cursor: pointer;
-            
-            
-            appearance: none;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            
-     
-            text-align: center;
-            text-align-last: center; 
+        input[type="text"] {
+            flex: 1; padding: 12px; border-radius: 12px;
+            border: 2px solid var(--secondary); outline: none; font-size: 1rem;
+        }
+
+        .search-btn {
+            background: var(--primary); color: white; border: none;
+            padding: 0 15px; border-radius: 12px; cursor: pointer; font-weight: bold;
         }
 
         .prayer-list { flex: 1; padding: 0 20px 20px; overflow-y: auto; }
@@ -79,13 +58,13 @@
             padding: 18px; margin-bottom: 12px;
             display: flex; justify-content: space-between; align-items: center;
             border: 1px solid #eee;
-            transition: 0.3s;
         }
 
         .prayer-name { color: var(--primary); font-weight: 600; font-size: 1.1rem; }
         .prayer-time { color: var(--text); font-weight: bold; font-size: 1.2rem; }
         
         #loader { display: none; color: white; font-size: 0.8rem; margin-top: 5px; }
+        #location-status { font-size: 0.9rem; font-weight: bold; margin-top: 5px; display: block;}
     </style>
 </head>
 <body>
@@ -94,28 +73,25 @@
         <header>
             <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9;">جاري التحميل...</div>
             <h1 style="margin: 5px 0; font-size: 1.6rem;">مواقيت الصلاة</h1>
-            <div id="loader">تحديث المواعيد...</div>
-            <button id="install-btn">تثبيت التطبيق</button>
+            <div id="location-status">تحديد الموقع...</div>
+            <div id="loader">تحديث البيانات...</div>
         </header>
 
-        <div class="selector-container">
-            <select id="city-select" onchange="fetchPrayers()">
-                <option value="Aleppo" selected>حلب</option>
-                <option value="Damascus">دمشق</option>
-                <option value="Homs">حمص</option>
-                <option value="Hama">حماة</option>
-                <option value="Lattakia">اللاذقية</option>
-                <option value="Tartous">طرطوس</option>
-                <option value="Idlib">إدلب</option>
-                <option value="Daraa">درعا</option>
-                <option value="Deir ez-Zor">دير الزور</option>
-            </select>
+        <div class="search-container">
+            <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: دورتموند)" onkeypress="if(event.key === 'Enter') fetchBySearch()">
+            <button class="search-btn" onclick="fetchBySearch()">بحث</button>
         </div>
 
         <div class="prayer-list" id="prayer-list"></div>
     </div>
 
     <script>
+        const cityMapping = {
+            "دمشق": "Damascus", "ديمشق": "Damascus", "دورتموند": "Dortmund",
+            "درتموند": "Dortmund", "برلين": "Berlin", "حلب": "Aleppo",
+            "مكة": "Mecca", "المدينة": "Medina", "اسطنبول": "Istanbul", "إسطنبول": "Istanbul"
+        };
+
         function convertTo12Hour(time) {
             let [hours, minutes] = time.split(':');
             hours = parseInt(hours);
@@ -124,67 +100,81 @@
             return `${hours}:${minutes} ${modifier}`;
         }
 
-        async function fetchPrayers() {
-            const city = document.getElementById('city-select').value;
+        window.onload = () => startApp();
+
+        async function startApp() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    async (pos) => {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const cityName = await getCityNameFromCoords(lat, lng);
+                        fetchPrayers(lat, lng, true, cityName);
+                    },
+                    (err) => {
+                        document.getElementById('location-status').innerText = "ابحث عن مدينتك يدوياً";
+                    }
+                );
+            }
+        }
+
+            async function getCityNameFromCoords(lat, lng) {
+            try {
+            // نستخدم محرك بحث google-maps-like بسيط ومجاني يدعم المتصفحات بشكل أفضل
+            const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ar`);
+            const data = await res.json();
+            
+            // جلب اسم المدينة أو المنطقة الإدارية
+            return data.city || data.locality || data.principalSubdivision || "موقعي الحالي";
+            } catch (e) { 
+            console.error("خطأ في جلب الاسم:", e);
+            return "الموقع الحالي"; 
+            }
+        }
+
+        async function fetchBySearch() {
+            let query = document.getElementById('city-input').value.trim();
+            if (!query) return;
+            const fixedCity = cityMapping[query] || query;
+            fetchPrayers(null, null, false, fixedCity);
+        }
+
+        async function fetchPrayers(lat, lng, isGPS, cityQuery = "") {
             const loader = document.getElementById('loader');
+            const status = document.getElementById('location-status');
+            const list = document.getElementById('prayer-list');
             loader.style.display = 'block';
             
+            let url = isGPS 
+                ? `https://api.aladhan.com/v1/timingsByAddress?address=${lat},${lng}&method=1`
+                : `https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(cityQuery)}&country=&method=1`;
+
             try {
-                // الطريقة 1 (جامعة العلوم الإسلامية بكراتشي) هي الأنسب لسوريا
-                const response = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${city}&country=Syria&method=1`);
+                const response = await fetch(url);
                 const result = await response.json();
-                const timings = result.data.timings;
-                
+                if (result.code !== 200) throw new Error();
+
+                const data = result.data;
                 document.getElementById('hijri-date').innerText = 
-                    `${result.data.date.hijri.day} ${result.data.date.hijri.month.ar} ${result.data.date.hijri.year} هـ`;
+                    `${data.date.hijri.day} ${data.date.hijri.month.ar} ${data.date.hijri.year} هـ`;
+                
+                status.innerText = isGPS ? `📍 ${cityQuery}` : `🏙️ ${cityQuery}`;
 
-                const prayerNames = {
-                    'Fajr': 'الفجر',
-                    'Dhuhr': 'الظهر',
-                    'Asr': 'العصر',
-                    'Maghrib': 'المغرب',
-                    'Isha': 'العشاء'
-                };
-
+                const prayerNames = {'Fajr': 'الفجر', 'Dhuhr': 'الظهر', 'Asr': 'العصر', 'Maghrib': 'المغرب', 'Isha': 'العشاء'};
                 let html = '';
                 for (let key in prayerNames) {
-                    html += `
-                        <div class="prayer-card">
-                            <span class="prayer-name">${prayerNames[key]}</span>
-                            <span class="prayer-time">${convertTo12Hour(timings[key])}</span>
-                        </div>`;
+                    html += `<div class="prayer-card">
+                        <span class="prayer-name">${prayerNames[key]}</span>
+                        <span class="prayer-time">${convertTo12Hour(data.timings[key])}</span>
+                    </div>`;
                 }
-                document.getElementById('prayer-list').innerHTML = html;
+                list.innerHTML = html;
             } catch (e) {
-                document.getElementById('prayer-list').innerHTML = '<p style="text-align:center">خطأ في الاتصال</p>';
+                list.innerHTML = '<p style="text-align:center; color:red; padding:20px;">عذراً، لم نجد نتائج دقيقة. حاول كتابة الاسم بالإنجليزية.</p>';
             } finally {
                 loader.style.display = 'none';
             }
         }
-
-        // التشغيل الأول (سيبدأ بحلب تلقائياً)
-        fetchPrayers();
-
-        // كود التثبيت PWA
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-btn').style.display = 'inline-block';
-        });
-
-        document.getElementById('install-btn').addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                deferredPrompt = null;
-                document.getElementById('install-btn').style.display = 'none';
-            }
-        });
-        // تسجيل Service Worker بسيط لجعل المتصفح يقبل التثبيت
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-}
-
     </script>
 </body>
 </html>

@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#6750a4">
+    
     <link rel="icon" type="image/png" href="icon.png">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+
     <title>صلاتي - دقة المواعيد</title>
     <style>
         :root {
@@ -32,8 +36,21 @@
 
         header { 
             background-color: var(--primary); 
-            color: white; padding: 25px 20px; 
+            color: white; padding: 20px; 
             text-align: center; border-radius: 0 0 24px 24px;
+        }
+
+        #install-btn {
+            display: none;
+            background: white;
+            color: var(--primary);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
         }
 
         .search-container { 
@@ -66,6 +83,7 @@
         
         #loader { display: none; color: white; font-size: 0.8rem; margin-top: 5px; }
         #location-status { font-size: 0.9rem; font-weight: bold; margin-top: 5px; display: block;}
+        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.5; padding: 10px; color: var(--text); }
     </style>
 </head>
 <body>
@@ -76,6 +94,7 @@
             <h1 style="margin: 5px 0; font-size: 1.6rem;">مواقيت الصلاة</h1>
             <div id="location-status">تحديد الموقع...</div>
             <div id="loader">تحديث البيانات...</div>
+            <button id="install-btn">تثبيت التطبيق 📥</button>
         </header>
 
         <div class="search-container">
@@ -84,9 +103,17 @@
         </div>
 
         <div class="prayer-list" id="prayer-list"></div>
+        <div class="version-tag">إصدار 1.1.2</div>
     </div>
 
     <script>
+        // تسجيل الـ Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+            });
+        }
+
         const cityMapping = {
             "دمشق": "Damascus", "ديمشق": "Damascus", "دورتموند": "Dortmund",
             "درتموند": "Dortmund", "برلين": "Berlin", "حلب": "Aleppo",
@@ -119,17 +146,13 @@
             }
         }
 
-            async function getCityNameFromCoords(lat, lng) {
+        async function getCityNameFromCoords(lat, lng) {
             try {
-            // نستخدم محرك بحث google-maps-like بسيط ومجاني يدعم المتصفحات بشكل أفضل
-            const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ar`);
-            const data = await res.json();
-            
-            // جلب اسم المدينة أو المنطقة الإدارية
-            return data.city || data.locality || data.principalSubdivision || "موقعي الحالي";
+                const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=ar`);
+                const data = await res.json();
+                return data.city || data.locality || data.principalSubdivision || "موقعي الحالي";
             } catch (e) { 
-            console.error("خطأ في جلب الاسم:", e);
-            return "الموقع الحالي"; 
+                return "الموقع الحالي"; 
             }
         }
 
@@ -171,34 +194,31 @@
                 }
                 list.innerHTML = html;
             } catch (e) {
-                list.innerHTML = '<p style="text-align:center; color:red; padding:20px;">عذراً، لم نجد نتائج دقيقة. حاول كتابة الاسم بالإنجليزية.</p>';
+                list.innerHTML = '<p style="text-align:center; color:red; padding:20px;">عذراً، لم نجد نتائج دقيقة.</p>';
             } finally {
                 loader.style.display = 'none';
             }
         }
+
+        // منطق تثبيت التطبيق (PWA)
         let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('install-btn');
+            if (btn) btn.style.display = 'inline-block';
+        });
 
-window.addEventListener('beforeinstallprompt', (e) => {
-    // منع النافذة التلقائية
-    e.preventDefault();
-    // تخزين الحدث ليتم استدعاؤه عند ضغط زر التثبيت الخاص بك
-    deferredPrompt = e;
-    
-    // إظهار زر التثبيت (تأكد أن لديك زر في HTML بـ id="install-btn")
-    const btn = document.getElementById('install-btn');
-    if (btn) btn.style.display = 'inline-block';
-});
-
-// تنفيذ التثبيت عند الضغط على الزر
-document.getElementById('install-btn')?.addEventListener('click', async () => {
-    if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to install: ${outcome}`);
-        deferredPrompt = null;
-        document.getElementById('install-btn').style.display = 'none';
-    }
-});
+        document.getElementById('install-btn')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-btn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
     </script>
 </body>
 </html>

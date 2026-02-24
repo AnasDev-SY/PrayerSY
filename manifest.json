@@ -3,7 +3,7 @@
   "short_name": "صلاتي",
   "description": "تطبيق لمواقيت الصلاة يعتمد على الموقع التلقائي والبحث الذكي",
   "version": "1.2.0",
-  "start_url": "/", 
+  "start_url": "./index.html", 
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#fef7ff",

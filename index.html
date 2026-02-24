@@ -197,7 +197,7 @@
                 
                 status.innerText = isGPS ? `📍 ${cityQuery}` : `🏙️ ${cityQuery}`;
 
-                const prayerNames = {'Fajr': 'الفجر', 'Dhuhr': 'الظهر', 'Asr': 'العصر', 'Maghrib': 'المغرب', 'Isha': 'العشاء'};
+                const prayerNames = {'Fajr': 'الفجر', 'Sunrise': 'الشروق', 'Dhuhr': 'الظهر', 'Asr': 'العصر', 'Maghrib': 'المغرب', 'Isha': 'العشاء'};
                 let html = '';
                 for (let key in prayerNames) {
                     html += `<div class="prayer-card">

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'salati-v1.1.0'; // رقم الإصدار هنا
+const CACHE_NAME = 'salati-v1.4.0'; // رقم الإصدار هنا
 const ASSETS = [
   'index.html',
   'manifest.json',

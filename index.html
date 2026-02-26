@@ -145,6 +145,12 @@
 
         async function startApp() {
             if (navigator.geolocation) {
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000, // انتظر 10 ثوانٍ كحد أقصى
+                    maximumAge: 0
+                };
+
                 navigator.geolocation.getCurrentPosition(
                     async (pos) => {
                         const lat = pos.coords.latitude;
@@ -153,9 +159,18 @@
                         fetchPrayers(lat, lng, true, cityName);
                     },
                     (err) => {
-                        document.getElementById('location-status').innerText = "ابحث عن مدينتك يدوياً";
-                    }
+                        console.error("خطأ في تحديد الموقع:", err);
+                        let message = "ابحث عن مدينتك يدوياً";
+                        if (err.code === 1) message = "يرجى تفعيل إذن الموقع في المتصفح";
+                        if (err.code === 2) message = "تعذر تحديد الموقع، تحقق من الـ GPS";
+                        
+                        document.getElementById('location-status').innerText = message;
+                        // يمكنك هنا استدعاء مدينة افتراضية إذا فشل الـ GPS
+                    },
+                    options
                 );
+            } else {
+                document.getElementById('location-status').innerText = "المتصفح لا يدعم تحديد الموقع";
             }
         }
 

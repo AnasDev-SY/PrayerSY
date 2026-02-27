@@ -118,7 +118,7 @@
             </div>
             <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9;">...</div>
             <h2 id="city-display" style="margin: 5px 0; font-size: 1.4rem;">...</h2>
-            <div id="loader">موجّه لتقويم أم القرى...</div>
+            <div id="loader">جاري الجلب...</div>
         </header>
 
         <div class="search-container">
@@ -127,19 +127,13 @@
         </div>
 
         <div class="prayer-list" id="list"></div>
-        <div class="version-tag">إصدار 1.6.0 - PWA & Dynamic Accuracy</div>
+        <div class="version-tag">إصدار 1.6.0 - PWA Ready</div>
     </div>
 
     <script>
+        // المنطق البرمجي للتطبيق
         let currentOffset = 0;
         let currentCity = "Aleppo";
-
-        // تسجيل الـ Service Worker لدعم التثبيت (PWA)
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js').catch(() => {});
-            });
-        }
 
         function getFormattedDate(offset) {
             let d = new Date();
@@ -176,7 +170,6 @@
                 const d = json.data;
                 const t = d.timings;
 
-                // التصحيح الديناميكي لتقويم أم القرى
                 const isUmmAlQura = ["Asia/Damascus", "Asia/Riyadh", "Asia/Amman", "Asia/Beirut", "Asia/Kuwait"].some(z => d.meta.timezone.includes(z));
                 
                 if (isUmmAlQura) {
@@ -208,19 +201,20 @@
             let val = document.getElementById('city-input').value.trim();
             if(val) {
                 currentCity = val;
-                currentOffset = 0; // العودة لليوم عند البحث عن مدينة جديدة
+                currentOffset = 0;
                 loadPrayers();
             }
         }
 
         window.onload = () => {
-            // محاولة جلب الموقع تلقائياً في البداية
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     async (pos) => {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
-                        const data = await res.json();
-                        currentCity = data.address.city || data.address.town || "Aleppo";
+                        try {
+                            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                            const data = await res.json();
+                            currentCity = data.address.city || data.address.town || "Aleppo";
+                        } catch(e) {}
                         loadPrayers();
                     },
                     () => loadPrayers()
@@ -229,24 +223,15 @@
                 loadPrayers();
             }
         };
-    </script>
-    <script>
-    // كود التسجيل خارج أي دالة ليعمل فوراً عند فتح الصفحة
-    if ('serviceWorker' in navigator) {
-        console.log("محاولة تسجيل الـ Service Worker..."); // للتأكد أن المتصفح وصل لهنا
-        
-        navigator.serviceWorker.register('./sw.js')
-            .then(reg => {
-                console.log('✅ تم التسجيل بنجاح! النطاق:', reg.scope);
-                // اختياري: تنبيه للتأكد من العمل لأول مرة فقط
-                // alert("تطبيق صلاتي جاهز للتثبيت!"); 
-            })
-            .catch(err => {
-                console.error('❌ فشل التسجيل:', err);
+
+        // تسجيل الـ Service Worker بشكل صحيح (تأكد من وجود ./ في المسار)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('✅ Registered with scope:', reg.scope))
+                    .catch(err => console.error('❌ Registration failed:', err));
             });
-    } else {
-        console.log("هذا المتصفح لا يدعم الـ Service Worker");
-    }
-</script>
+        }
+    </script>
 </body>
 </html>

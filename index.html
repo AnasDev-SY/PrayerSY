@@ -230,5 +230,23 @@
             }
         };
     </script>
+    <script>
+    // كود التسجيل خارج أي دالة ليعمل فوراً عند فتح الصفحة
+    if ('serviceWorker' in navigator) {
+        console.log("محاولة تسجيل الـ Service Worker..."); // للتأكد أن المتصفح وصل لهنا
+        
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => {
+                console.log('✅ تم التسجيل بنجاح! النطاق:', reg.scope);
+                // اختياري: تنبيه للتأكد من العمل لأول مرة فقط
+                // alert("تطبيق صلاتي جاهز للتثبيت!"); 
+            })
+            .catch(err => {
+                console.error('❌ فشل التسجيل:', err);
+            });
+    } else {
+        console.log("هذا المتصفح لا يدعم الـ Service Worker");
+    }
+</script>
 </body>
 </html>

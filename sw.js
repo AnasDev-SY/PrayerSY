@@ -1,24 +1,19 @@
-const CACHE_NAME = 'salati-v1.5.0'; // رقم الإصدار هنا
+const CACHE_NAME = 'salati-v1.6.0';
 const ASSETS = [
-  'index.html',
-  'manifest.json',
-  'icon.png',
-  'favicon.png',
-  'icon192.png',
-  'icon512.png'
+  './',
+  './index.html',
+  './manifest.json',
+  './icons/favicon.png',
+  './icons/icon192.png',
+  './icons/icon512.png'
 ];
 
-// تثبيت الـ Service Worker وحفظ الملفات
 self.addEventListener('install', (event) => {
-  console.log(`[Service Worker] Installing Version: ${CACHE_NAME}`);
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
   );
 });
 
-// تفعيل النسخة الجديدة وحذف القديمة
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -29,11 +24,8 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// جلب الملفات من الكاش في حال انقطاع الإنترنت
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });

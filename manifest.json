@@ -2,7 +2,7 @@
   "name": "صلاتي - مواقيت الصلاة العالمية",
   "short_name": "صلاتي",
   "description": "تطبيق لمواقيت الصلاة يعتمد على الموقع التلقائي والبحث الذكي",
-  "version": "1.4.0",
+  "version": "1.6.0",
   "start_url": "index.html",
   "display": "standalone",
   "orientation": "portrait",

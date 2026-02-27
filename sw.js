@@ -1,8 +1,11 @@
-const CACHE_NAME = 'salati-v1.4.0'; // رقم الإصدار هنا
+const CACHE_NAME = 'salati-v1.5.0'; // رقم الإصدار هنا
 const ASSETS = [
   'index.html',
   'manifest.json',
-  'icon.png'
+  'icon.png',
+  'favicon.png',
+  'icon192.png',
+  'icon512.png'
 ];
 
 // تثبيت الـ Service Worker وحفظ الملفات

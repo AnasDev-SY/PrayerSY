@@ -12,12 +12,13 @@
     {
       "purpose": "maskable",
       "sizes": "192x192",
-      "src": "icon192.png",
+      "src": "icons/icon192.png",
       "type": "image/png"
     },
     {
       "purpose": "maskable",
       "sizes": "512x512",
+      "src": "icons/icon512.png",
       "type": "image/png"
     }
   ]

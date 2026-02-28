@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <script type="application/ld+json">
+    {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "صلاتي - Salati",
+    "description": "تطبيق لعرض مواقيت الصلاة حسب تقويم أم القرى",
+    "applicationCategory": "LifestyleApplication",
+    "operatingSystem": "All"
+    }
+    </script>
+
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#6750a4">
@@ -11,8 +23,8 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
-    <meta name="description" content="تطبيق صلاتي: مواقيت صلاة دقيقة مطابقة لتقويم أم القرى وجوجل مع إمكانية التصفح اليومي.">
-    <title>صلاتي - الإصدار الاحترافي</title>
+    <meta name="description" content="صلاتي: مواقيت الصلاة الدقيقة حسب تقويم أم القرى. احصل على أوقات الفجر، الظهر، العصر، المغرب، والعشاء في مدينتك مع التاريخ الهجري.">
+    <title>صلاتي - مواقيت الصلاة العالمية</title>
 
     <style>
         :root {
@@ -118,7 +130,7 @@
             </div>
             <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9;">...</div>
             <h2 id="city-display" style="margin: 5px 0; font-size: 1.4rem;">...</h2>
-            <div id="loader">جاري الجلب...</div>
+            <div id="loader">جاري طلب المعلومات...</div>
         </header>
 
         <div class="search-container">
@@ -127,7 +139,7 @@
         </div>
 
         <div class="prayer-list" id="list"></div>
-        <div class="version-tag">إصدار 1.6.0 - PWA Ready</div>
+        <div class="version-tag">إصدار 1.7.0 - salati</div>
     </div>
 
     <script>

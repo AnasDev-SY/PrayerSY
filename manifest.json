@@ -2,7 +2,7 @@
   "name": "صلاتي - مواقيت الصلاة العالمية",
   "short_name": "صلاتي",
   "description": "تطبيق لمواقيت الصلاة يعتمد على الموقع التلقائي والبحث الذكي",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
@@ -12,13 +12,13 @@
     {
       "purpose": "any maskable",
       "sizes": "192x192",
-      "src": "icons/icon192.png",
+      "src": "icons/favicon.png",
       "type": "image/png"
     },
     {
       "purpose": "any maskable",
       "sizes": "512x512",
-      "src": "icons/icon512.png",
+      "src": "icons/favicon.png",
       "type": "image/png"
     },
     {

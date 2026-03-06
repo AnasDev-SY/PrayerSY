@@ -1,11 +1,11 @@
-const CACHE_NAME = 'salati-v1.7.0';
+const CACHE_NAME = 'salati-v1.8.0';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icons/favicon.png',
   './icons/icon192.png',
-  './icons/icon512.png'
+  './icons/icon512.png',
+  './icons/favicon.png',
 ];
 
 self.addEventListener('install', (event) => {

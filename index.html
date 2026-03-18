@@ -1,46 +1,64 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <!-- البيانات المنظمة لمحركات البحث -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#6750a4">
+    <meta name="description" content="تطبيق صلاتي - مواقيت الصلاة بدقة عالية بناءً على الموقع الجغرافي">
+    
+    <!-- PWA Essential Tags -->
+    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+    <title>صلاتي - PrayerSY</title>
+
+    <!-- SEO Structure -->
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebApplication",
-        "name": "صلاتي - Salati",
-        "description": "مواقيت صلاة دقيقة مع تحديد تلقائي للمنطقة",
+        "name": "صلاتي - PrayerSY",
+        "description": "تطبيق لعرض مواقيت الصلاة بدقة للمحافظات والقرى",
         "applicationCategory": "LifestyleApplication",
         "operatingSystem": "All"
     }
     </script>
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#6750a4">
-    
-    <link rel="icon" type="image/x-icon" href="icons/favicon.ico">
-    <link rel="apple-touch-icon" type="image/png" href="icons/apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json">
-    <meta name="mobile-web-app-capable" content="yes">
-
-    <title>صلاتي - مواقيت الصلاة</title>
-
     <style>
-        :root { --primary: #6750a4; --secondary: #eaddff; --bg: #fef7ff; --text: #1c1b1f; }
-        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
-        .app-container { background-color: var(--bg); width: 100%; max-width: 400px; min-height: 85vh; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        header { background-color: var(--primary); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 24px 24px; }
+        :root { --primary: #6750a4; --secondary: #eaddff; --bg: #fef7ff; --text: #1c1b1f; --surface: #ffffff; }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
+        
+        .app-container { background-color: var(--bg); width: 100%; max-width: 400px; min-height: 85vh; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        
+        header { background-color: var(--primary); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 24px 24px; z-index: 2; }
+        
         .date-nav { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.15); border-radius: 12px; margin-bottom: 10px; padding: 5px; }
-        .nav-btn { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 5px 15px; }
-        .search-container { padding: 15px 20px; display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 14px; border-radius: 14px; border: 2px solid var(--secondary); outline: none; font-size: 1rem; }
-        .search-btn { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 14px; cursor: pointer; font-size: 1.2rem; }
-        .prayer-list { flex: 1; padding: 0 20px 20px; }
-        .prayer-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
+        .nav-btn { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 5px 15px; transition: opacity 0.2s; }
+        .nav-btn:active { opacity: 0.5; }
+
+        .search-container { padding: 15px 20px; display: flex; gap: 8px; z-index: 1; }
+        input[type="text"] { flex: 1; padding: 14px; border-radius: 14px; border: 2px solid var(--secondary); outline: none; font-size: 1rem; transition: border-color 0.3s; }
+        input[type="text"]:focus { border-color: var(--primary); }
+        .search-btn { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 14px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; }
+
+        .prayer-list { flex: 1; padding: 0 20px 20px; overflow-y: auto; }
+        .prayer-card { background: var(--surface); border-radius: 16px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; transition: transform 0.2s, box-shadow 0.2s; }
+        .prayer-card:active { transform: scale(0.98); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        
         .p-name { color: var(--primary); font-weight: 600; font-size: 1.1rem; }
         .p-time { color: var(--text); font-weight: bold; font-size: 1.2rem; }
-        #method-info { font-size: 0.7rem; opacity: 0.7; margin-top: 10px; }
-        #loader { display: none; font-size: 0.8rem; margin-top: 5px; }
-        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.3; padding: 10px; }
+        
+        #hijri-date { font-size: 0.85rem; opacity: 0.9; margin-bottom: 5px; }
+        #method-info { font-size: 0.7rem; opacity: 0.7; margin-top: 10px; line-height: 1.4; }
+        #loader { display: none; color: white; font-size: 0.8rem; margin-top: 5px; font-style: italic; }
+        
+        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.3; padding: 10px; letter-spacing: 1px; }
+        
+        .error-msg { text-align: center; color: #ba1a1a; padding: 20px; font-size: 0.9rem; }
+        .retry-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 8px; margin-top: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -48,93 +66,110 @@
     <div class="app-container">
         <header>
             <div class="date-nav">
-                <button class="nav-btn" onclick="changeDate(-1)">❮</button>
-                <div id="display-date" style="font-weight: bold;">اليوم</div>
-                <button class="nav-btn" onclick="changeDate(1)">❯</button>
+                <button class="nav-btn" onclick="changeDate(-1)" aria-label="السابق">❮</button>
+                <div id="display-date" style="font-weight: bold; font-size: 1.1rem;">اليوم</div>
+                <button class="nav-btn" onclick="changeDate(1)" aria-label="التالي">❯</button>
             </div>
-            <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">...</div>
-            <h2 id="city-display" style="margin: 0; font-size: 1.5rem;">جاري التحديد...</h2>
-            <div id="method-info">...</div>
-            <div id="loader">جاري التحديث...</div>
+            <div id="hijri-date">جاري التحميل...</div>
+            <h2 id="city-display" style="margin: 0; font-size: 1.4rem; font-weight: 800;">صلاتي</h2>
+            <div id="method-info">تحديد الموقع التلقائي...</div>
+            <div id="loader">جاري جلب البيانات...</div>
         </header>
 
         <div class="search-container">
-            <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: دمشق)" onkeypress="if(event.key === 'Enter') searchCity()">
-            <button class="search-btn" onclick="searchCity()">🔍</button>
+            <input type="text" id="city-input" placeholder="ابحث عن مدينة أو محافظة..." onkeypress="if(event.key === 'Enter') searchCity()">
+            <button class="search-btn" onclick="searchCity()" aria-label="بحث">🔍</button>
         </div>
 
-        <div class="prayer-list" id="list"></div>
-        <div class="version-tag">صلاتي v1.8.9 - النسخة الكاملة</div>
+        <div class="prayer-list" id="list">
+            <!-- سيتم حقن البطاقات هنا -->
+        </div>
+
+        <div class="version-tag">PRAYERSY v2.0.0 - ALL-IN-ONE</div>
     </div>
 
     <script>
         let currentOffset = 0;
-        let currentCity = localStorage.getItem('lastCity') || "Aleppo";
+        let currentCity = localStorage.getItem('lastCity') || "Damascus";
         let currentCountry = localStorage.getItem('lastCountry') || "Syria";
 
-        // المصفوفات الذكية لتحديد طريقة الحساب تلقائياً
-        const countryMethods = {
-            4: ["saudi arabia", "syria", "jordan", "lebanon", "palestine", "yemen", "السعودية", "سوريا", "سورية", "الأردن", "لبنان", "فلسطين", "اليمن"],
-            5: ["egypt", "sudan", "libya", "مصر", "السودان", "ليبيا"],
-            1: ["pakistan", "india", "bangladesh", "باكستان", "الهند"],
-            2: ["usa", "canada", "america", "أمريكا", "كندا"]
-        };
+        const methodNames = { 4: "أم القرى", 5: "المساحة المصرية", 1: "جامعة كراتشي", 2: "ISNA", 3: "الرابطة العالمية" };
 
-        const methodNames = {
-            4: "أم القرى", 5: "المساحة المصرية", 1: "جامعة كراتشي", 2: "ISNA (أمريكا)", 3: "رابطة العالم الإسلامي"
-        };
+        // تحديد طريقة الحساب بناءً على الدولة المكتشفة
+        function getMethodByCountry(country) {
+            const c = country.toLowerCase();
+            const ummAlQura = ["saudi", "syria", "jordan", "lebanon", "palestine", "yemen", "iraq", "emirates", "qatar", "kuwait", "bahrain", "سوريا", "السعودية"];
+            const egypt = ["egypt", "sudan", "libya", "مصر", "ليبيا"];
+            const karachi = ["pakistan", "india", "bangladesh", "afghanistan"];
+            const isna = ["usa", "canada", "america"];
 
-        function getMethodId(locationText) {
-            const text = locationText.toLowerCase();
-            for (let id in countryMethods) {
-                if (countryMethods[id].some(country => text.includes(country.toLowerCase()))) {
-                    return id;
+            if (ummAlQura.some(k => c.includes(k))) return 4;
+            if (egypt.some(k => c.includes(k))) return 5;
+            if (karachi.some(k => c.includes(k))) return 1;
+            if (isna.some(k => c.includes(k))) return 2;
+            return 3; 
+        }
+
+        async function getGeoData(query) {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=1&accept-language=ar`);
+                const data = await res.json();
+                if (data && data.length > 0) {
+                    const addr = data[0].address;
+                    return {
+                        city: addr.city || addr.town || addr.village || addr.state || query,
+                        country: addr.country || ""
+                    };
                 }
-            }
-            return 3; // الافتراضي
+            } catch (e) { console.error("Geo error"); }
+            return { city: query, country: "" };
         }
 
         async function loadPrayers() {
             const loader = document.getElementById('loader');
+            const listDiv = document.getElementById('list');
             const dateStr = getFormattedDate(currentOffset);
+            
             document.getElementById('display-date').innerText = currentOffset === 0 ? "اليوم" : dateStr;
             loader.style.display = 'block';
 
-            const methodId = getMethodId(currentCity + " " + currentCountry);
+            const methodId = getMethodByCountry(currentCountry || currentCity);
 
             try {
                 const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(currentCity)}&country=${encodeURIComponent(currentCountry)}&method=${methodId}`;
                 const res = await fetch(url);
                 const json = await res.json();
                 
-                if (json.code !== 200) throw new Error();
+                if (json.code !== 200) throw new Error("Data fetch error");
 
                 const d = json.data;
                 const t = d.timings;
 
-                // معالجة توقيت أم القرى (العشاء بعد المغرب بـ 90 دقيقة)
+                // معالجة توقيت العشاء لتقويم أم القرى (مغيب + 90 دقيقة)
                 if (methodId == 4) {
                     let [h, m] = t.Maghrib.split(':').map(Number);
-                    let magDate = new Date(); magDate.setHours(h, m + 90);
+                    let magDate = new Date(); 
+                    magDate.setHours(h, m + 90);
                     t.Isha = `${String(magDate.getHours()).padStart(2, '0')}:${String(magDate.getMinutes()).padStart(2, '0')}`;
                 }
 
                 document.getElementById('hijri-date').innerText = `${d.date.hijri.day} ${d.date.hijri.month.ar} ${d.date.hijri.year} هـ`;
                 document.getElementById('city-display').innerText = currentCity;
-                document.getElementById('method-info').innerText = `الحساب: ${methodNames[methodId]}`;
+                document.getElementById('method-info').innerText = `الموقع: ${currentCountry || 'غير محدد'} | التقويم: ${methodNames[methodId]}`;
 
                 const names = {Fajr:'الفجر', Sunrise:'الشروق', Dhuhr:'الظهر', Asr:'العصر', Maghrib:'المغرب', Isha:'العشاء'};
-                document.getElementById('list').innerHTML = Object.keys(names).map(k => `
+                listDiv.innerHTML = Object.keys(names).map(k => `
                     <div class="prayer-card">
                         <span class="p-name">${names[k]}</span>
-                        <span class="p-time">${to12H(t[k])}</span>
+                        <span class="p-time">${formatTime(t[k])}</span>
                     </div>
                 `).join('');
 
                 localStorage.setItem('lastCity', currentCity);
                 localStorage.setItem('lastCountry', currentCountry);
+
             } catch(e) {
-                document.getElementById('list').innerHTML = "<p style='text-align:center;'>فشل التحديث. تأكد من الإنترنت.</p>";
+                listDiv.innerHTML = `<div class="error-msg">تعذر جلب البيانات. تأكد من الاتصال.<br><button class="retry-btn" onclick="loadPrayers()">إعادة المحاولة</button></div>`;
             } finally { loader.style.display = 'none'; }
         }
 
@@ -143,16 +178,23 @@
             return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
         }
 
-        function to12H(time) {
+        function formatTime(time) {
             let [h, m] = time.split(':').map(Number);
-            let mod = h >= 12 ? 'م' : 'ص';
+            let period = h >= 12 ? 'م' : 'ص';
             h = h % 12 || 12;
-            return `${h}:${String(m).padStart(2, '0')} ${mod}`;
+            return `${h}:${String(m).padStart(2, '0')} ${period}`;
         }
 
-        function searchCity() {
+        async function searchCity() {
             let val = document.getElementById('city-input').value.trim();
-            if(val) { currentCity = val; currentCountry = ""; currentOffset = 0; loadPrayers(); }
+            if(val) {
+                document.getElementById('loader').style.display = 'block';
+                const loc = await getGeoData(val);
+                currentCity = loc.city;
+                currentCountry = loc.country;
+                currentOffset = 0;
+                loadPrayers();
+            }
         }
 
         function changeDate(n) { currentOffset += n; loadPrayers(); }
@@ -163,7 +205,7 @@
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=ar`);
                         const data = await res.json();
-                        currentCity = data.address.city || data.address.town || "Aleppo";
+                        currentCity = data.address.city || data.address.town || data.address.state || "Damascus";
                         currentCountry = data.address.country || "Syria";
                     } catch(e) {}
                     loadPrayers();
@@ -171,10 +213,10 @@
             } else { loadPrayers(); }
         };
 
-        // إعادة تفعيل الـ Service Worker لدعم الـ PWA
+        // تسجيل الـ Service Worker لـ PWA
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed'));
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW failed', err));
             });
         }
     </script>

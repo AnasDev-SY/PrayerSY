@@ -1,4 +1,4 @@
-const CACHE_NAME = 'salati-v1.8.9';
+const CACHE_NAME = 'salati-v2.0.0';
 const ASSETS = [
   './',
   './index.html',

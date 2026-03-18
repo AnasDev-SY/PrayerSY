@@ -70,13 +70,13 @@
         </div>
 
         <div class="prayer-list" id="list"></div>
-        <div class="version-tag">إصدار 1.8.5 - salati</div>
+        <div class="version-tag">إصدار 1.8.6 - salati</div>
     </div>
 
     <script>
         let currentOffset = 0;
-        let currentCity = "Aleppo";
-        let currentCountry = "Syria";
+        let currentCity = localStorage.getItem('lastCity') || "Aleppo";
+        let currentCountry = localStorage.getItem('lastCountry') || "Syria";
 
         const translations = {
             "Umm Al-Qura University, Makkah": "جامعة أم القرى (مكة)",
@@ -92,6 +92,7 @@
         }
 
         function to12H(time) {
+            if(!time) return "--:--";
             let [h, m] = time.split(':').map(Number);
             let mod = h >= 12 ? 'م' : 'ص';
             h = h % 12 || 12;
@@ -104,13 +105,11 @@
             document.getElementById('display-date').innerText = currentOffset === 0 ? "اليوم" : dateStr;
             loader.style.display = 'block';
 
-            // منطق تحديد الطريقة بناءً على اسم المدينة أو الدولة
             let methodId = 3; 
             const check = (currentCity + " " + currentCountry).toLowerCase();
             
             if (check.includes("cairo") || check.includes("القاهرة") || check.includes("egypt") || check.includes("مصر")) {
                 methodId = 5;
-                currentCountry = "Egypt";
             } else if (check.includes("aleppo") || check.includes("حلب") || check.includes("saudi") || check.includes("syria") || check.includes("سوريا")) {
                 methodId = 4;
             }
@@ -118,20 +117,22 @@
             try {
                 const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(currentCity)}&country=${encodeURIComponent(currentCountry)}&method=${methodId}`;
                 const res = await fetch(url);
+                if (!res.ok) throw new Error('Network response was not ok');
+                
                 const json = await res.json();
                 const d = json.data;
                 const t = d.timings;
 
-                // تعديل وقت العشاء لتقويم أم القرى (90 دقيقة بعد المغرب)
                 if (methodId === 4) {
                     let [h, m] = t.Maghrib.split(':').map(Number);
-                    let date = new Date(); date.setHours(h, m + 90);
+                    let date = new Date(); 
+                    date.setHours(h, m + 90);
                     t.Isha = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
                 }
 
                 document.getElementById('hijri-date').innerText = `${d.date.hijri.day} ${d.date.hijri.month.ar} ${d.date.hijri.year} هـ`;
                 document.getElementById('city-display').innerText = currentCity;
-                document.getسElementById('method-display').innerText = `طريقة الحساب: ${translations[d.meta.method.name] || d.meta.method.name}`;
+                document.getElementById('method-display').innerText = `طريقة الحساب: ${translations[d.meta.method.name] || d.meta.method.name}`;
 
                 const names = {Fajr:'الفجر', Sunrise:'الشروق', Dhuhr:'الظهر', Asr:'العصر', Maghrib:'المغرب', Isha:'العشاء'};
                 document.getElementById('list').innerHTML = Object.keys(names).map(k => `
@@ -140,8 +141,17 @@
                         <span class="p-time">${to12H(t[k])}</span>
                     </div>
                 `).join('');
+                
+                localStorage.setItem('lastCity', currentCity);
+                localStorage.setItem('lastCountry', currentCountry);
+
             } catch(e) {
-                document.getElementById('list').innerHTML = "<p style='text-align:center;'>خطأ في التحميل.</p>";
+                console.error(e);
+                document.getElementById('list').innerHTML = `
+                    <div style='text-align:center; padding: 20px;'>
+                        <p>خطأ في تحميل البيانات.</p>
+                        <button onclick="loadPrayers()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">إعادة المحاولة</button>
+                    </div>`;
             } finally { loader.style.display = 'none'; }
         }
 
@@ -149,7 +159,7 @@
             let val = document.getElementById('city-input').value.trim();
             if(val) {
                 currentCity = val;
-                currentCountry = ""; // سيتم تحديدها تلقائياً داخل loadPrayers
+                currentCountry = ""; 
                 currentOffset = 0;
                 loadPrayers();
             }
@@ -158,12 +168,12 @@
         function changeDate(n) { currentOffset += n; loadPrayers(); }
 
         window.onload = () => {
-            if (navigator.geolocation) {
+            if (navigator.geolocation && !localStorage.getItem('lastCity')) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
                         const data = await res.json();
-                        currentCity = data.address.city || data.address.town || "Aleppo";
+                        currentCity = data.address.city || data.address.town || data.address.village || "Aleppo";
                         currentCountry = data.address.country || "Syria";
                     } catch(e) {}
                     loadPrayers();

@@ -37,16 +37,20 @@
         header { background-color: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 0 0 24px 24px; }
         .date-nav { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.15); border-radius: 12px; margin-bottom: 10px; padding: 5px; }
         .nav-btn { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 5px 15px; }
-        .search-container { padding: 15px 20px; display: flex; gap: 8px; }
+        .search-container { padding: 15px 20px; display: flex; flex-direction: column; gap: 8px; }
+        .input-group { display: flex; gap: 8px; }
         input[type="text"] { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--secondary); outline: none; font-size: 1rem; }
         .search-btn { background: var(--primary); color: white; border: none; padding: 0 15px; border-radius: 12px; cursor: pointer; font-weight: bold; }
+        
+        select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--secondary); background: white; font-size: 0.9rem; color: var(--text); outline: none; }
+        
         .prayer-list { flex: 1; padding: 0 20px 20px; }
         .prayer-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
         .p-name { color: var(--primary); font-weight: 600; font-size: 1.1rem; }
         .p-time { color: var(--text); font-weight: bold; font-size: 1.2rem; }
-        #method-display { font-size: 0.75rem; opacity: 0.85; margin-top: 8px; padding: 2px 10px; background: rgba(0,0,0,0.1); border-radius: 6px; display: inline-block; }
-        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.4; padding: 10px; }
+        
         #loader { display: none; color: white; font-size: 0.8rem; margin-top: 5px; }
+        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.4; padding: 10px; }
         .error-msg { text-align: center; color: #ba1a1a; padding: 20px; font-weight: bold; }
     </style>
 </head>
@@ -61,31 +65,32 @@
             </div>
             <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9;">...</div>
             <h2 id="city-display" style="margin: 5px 0; font-size: 1.4rem;">...</h2>
-            <div id="method-display">تحديد الطريقة...</div>
             <div id="loader">جاري التحديث...</div>
         </header>
 
         <div class="search-container">
-            <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: Aleppo)" onkeypress="if(event.key === 'Enter') searchCity()">
-            <button class="search-btn" onclick="searchCity()">🔍</button>
+            <div class="input-group">
+                <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: Aleppo)" onkeypress="if(event.key === 'Enter') searchCity()">
+                <button class="search-btn" onclick="searchCity()">🔍</button>
+            </div>
+            <select id="method-select" onchange="loadPrayers()">
+                <option value="3">رابطة العالم الإسلامي</option>
+                <option value="4">أم القرى (مكة المكرمة)</option>
+                <option value="5">الهيئة المصرية العامة للمساحة</option>
+                <option value="2">الجمعية الإسلامية لأمريكا الشمالية (ISNA)</option>
+                <option value="1">جامعة العلوم الإسلامية بكراتشي</option>
+                <option value="8">معهد الجيوفيزياء بتهران</option>
+            </select>
         </div>
 
         <div class="prayer-list" id="list"></div>
-        <div class="version-tag">إصدار 1.8.7 - salati</div>
+        <div class="version-tag">إصدار 1.8.8 - salati</div>
     </div>
 
     <script>
         let currentOffset = 0;
-        let currentCity = "Aleppo";
-        let currentCountry = "Syria";
-
-        const translations = {
-            "Umm Al-Qura University, Makkah": "جامعة أم القرى (مكة)",
-            "Egyptian General Authority of Survey": "الهيئة المصرية العامة للمساحة",
-            "Muslim World League": "رابطة العالم الإسلامي",
-            "University of Islamic Sciences, Karachi": "جامعة العلوم الإسلامية بكراتشي",
-            "Institute of Geophysics, University of Tehran": "معهد الجيوفيزياء بتهران"
-        };
+        let currentCity = localStorage.getItem('lastCity') || "Aleppo";
+        let currentCountry = localStorage.getItem('lastCountry') || "Syria";
 
         function getFormattedDate(offset) {
             let d = new Date();
@@ -104,19 +109,15 @@
         async function loadPrayers() {
             const loader = document.getElementById('loader');
             const listContainer = document.getElementById('list');
+            const methodSelect = document.getElementById('method-select');
             const dateStr = getFormattedDate(currentOffset);
             
             document.getElementById('display-date').innerText = currentOffset === 0 ? "اليوم" : dateStr;
             loader.style.display = 'block';
 
-            // تحديد طريقة الحساب
-            let methodId = 3; 
-            const check = (currentCity + " " + currentCountry).toLowerCase();
-            if (check.includes("egypt") || check.includes("مصر") || check.includes("cairo")) methodId = 5;
-            else if (check.includes("saudi") || check.includes("syria") || check.includes("سوريا") || check.includes("makkah")) methodId = 4;
+            const methodId = methodSelect.value;
 
             try {
-                // محاولة جلب البيانات
                 const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(currentCity)}&country=${encodeURIComponent(currentCountry)}&method=${methodId}`;
                 const res = await fetch(url);
                 const json = await res.json();
@@ -126,17 +127,16 @@
                 const d = json.data;
                 const t = d.timings;
 
-                // تعديل وقت العشاء لتقويم أم القرى (ساعة ونصف بعد المغرب)
-                if (methodId === 4) {
+                // تعديل العشاء لتقويم أم القرى (ساعة ونصف بعد المغرب)
+                if (methodId === "4") {
                     let [h, m] = t.Maghrib.split(':').map(Number);
-                    let maghribDate = new Date();
-                    maghribDate.setHours(h, m + 90);
-                    t.Isha = `${String(maghribDate.getHours()).padStart(2, '0')}:${String(maghribDate.getMinutes()).padStart(2, '0')}`;
+                    let magDate = new Date();
+                    magDate.setHours(h, m + 90);
+                    t.Isha = `${String(magDate.getHours()).padStart(2, '0')}:${String(magDate.getMinutes()).padStart(2, '0')}`;
                 }
 
                 document.getElementById('hijri-date').innerText = `${d.date.hijri.day} ${d.date.hijri.month.ar} ${d.date.hijri.year} هـ`;
                 document.getElementById('city-display').innerText = currentCity;
-                document.getElementById('method-display').innerText = `طريقة الحساب: ${translations[d.meta.method.name] || d.meta.method.name}`;
 
                 const names = {Fajr:'الفجر', Sunrise:'الشروق', Dhuhr:'الظهر', Asr:'العصر', Maghrib:'المغرب', Isha:'العشاء'};
                 listContainer.innerHTML = Object.keys(names).map(k => `
@@ -146,54 +146,50 @@
                     </div>
                 `).join('');
 
+                localStorage.setItem('lastCity', currentCity);
+                localStorage.setItem('lastCountry', currentCountry);
+
             } catch(e) {
-                console.error("Fetch failed:", e);
                 listContainer.innerHTML = `
                     <div class="error-msg">
-                        <p>عذراً، فشل تحميل المواقيت.</p>
+                        <p>فشل تحميل المواقيت.</p>
                         <button onclick="loadPrayers()" style="padding:8px 15px; border-radius:8px; border:none; background:var(--primary); color:white; cursor:pointer;">إعادة المحاولة</button>
                     </div>`;
-            } finally { 
-                loader.style.display = 'none'; 
-            }
+            } finally { loader.style.display = 'none'; }
         }
 
         function searchCity() {
             let val = document.getElementById('city-input').value.trim();
             if(val) {
                 currentCity = val;
-                currentCountry = ""; // تركها فارغة للـ API للبحث الأشمل
+                currentCountry = ""; 
                 currentOffset = 0;
+                
+                // تحديد تلقائي للطريقة بناء على الاسم المكتوب قبل التحميل
+                const check = val.toLowerCase();
+                const methodSelect = document.getElementById('method-select');
+                if (check.includes("مصر") || check.includes("egypt") || check.includes("cairo")) methodSelect.value = "5";
+                else if (check.includes("saudi") || check.includes("syria") || check.includes("makkah")) methodSelect.value = "4";
+                
                 loadPrayers();
             }
         }
 
-        function changeDate(n) { 
-            currentOffset += n; 
-            loadPrayers(); 
-        }
+        function changeDate(n) { currentOffset += n; loadPrayers(); }
 
         window.onload = () => {
-            if (navigator.geolocation) {
+            if (navigator.geolocation && !localStorage.getItem('lastCity')) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     try {
                         const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=en`);
                         const data = await res.json();
-                        currentCity = data.address.city || data.address.town || data.address.state || "Aleppo";
+                        currentCity = data.address.city || data.address.town || "Aleppo";
                         currentCountry = data.address.country || "Syria";
-                    } catch(e) {
-                        console.log("Geo lookup failed, using defaults");
-                    }
+                    } catch(e) {}
                     loadPrayers();
                 }, () => loadPrayers());
-            } else { 
-                loadPrayers(); 
-            }
+            } else { loadPrayers(); }
         };
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('./sw.js');
-        }
     </script>
 </body>
 </html>

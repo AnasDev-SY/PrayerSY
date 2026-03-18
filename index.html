@@ -47,6 +47,7 @@
         #method-display { font-size: 0.75rem; opacity: 0.85; margin-top: 8px; padding: 2px 10px; background: rgba(0,0,0,0.1); border-radius: 6px; display: inline-block; }
         .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.4; padding: 10px; }
         #loader { display: none; color: white; font-size: 0.8rem; margin-top: 5px; }
+        .error-msg { text-align: center; color: #ba1a1a; padding: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -65,24 +66,25 @@
         </header>
 
         <div class="search-container">
-            <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: القاهرة)" onkeypress="if(event.key === 'Enter') searchCity()">
+            <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: Aleppo)" onkeypress="if(event.key === 'Enter') searchCity()">
             <button class="search-btn" onclick="searchCity()">🔍</button>
         </div>
 
         <div class="prayer-list" id="list"></div>
-        <div class="version-tag">إصدار 1.8.6 - salati</div>
+        <div class="version-tag">إصدار 1.8.7 - salati</div>
     </div>
 
     <script>
         let currentOffset = 0;
-        let currentCity = localStorage.getItem('lastCity') || "Aleppo";
-        let currentCountry = localStorage.getItem('lastCountry') || "Syria";
+        let currentCity = "Aleppo";
+        let currentCountry = "Syria";
 
         const translations = {
             "Umm Al-Qura University, Makkah": "جامعة أم القرى (مكة)",
             "Egyptian General Authority of Survey": "الهيئة المصرية العامة للمساحة",
             "Muslim World League": "رابطة العالم الإسلامي",
-            "University of Islamic Sciences, Karachi": "جامعة العلوم الإسلامية بكراتشي"
+            "University of Islamic Sciences, Karachi": "جامعة العلوم الإسلامية بكراتشي",
+            "Institute of Geophysics, University of Tehran": "معهد الجيوفيزياء بتهران"
         };
 
         function getFormattedDate(offset) {
@@ -101,33 +103,35 @@
 
         async function loadPrayers() {
             const loader = document.getElementById('loader');
+            const listContainer = document.getElementById('list');
             const dateStr = getFormattedDate(currentOffset);
+            
             document.getElementById('display-date').innerText = currentOffset === 0 ? "اليوم" : dateStr;
             loader.style.display = 'block';
 
+            // تحديد طريقة الحساب
             let methodId = 3; 
             const check = (currentCity + " " + currentCountry).toLowerCase();
-            
-            if (check.includes("cairo") || check.includes("القاهرة") || check.includes("egypt") || check.includes("مصر")) {
-                methodId = 5;
-            } else if (check.includes("aleppo") || check.includes("حلب") || check.includes("saudi") || check.includes("syria") || check.includes("سوريا")) {
-                methodId = 4;
-            }
+            if (check.includes("egypt") || check.includes("مصر") || check.includes("cairo")) methodId = 5;
+            else if (check.includes("saudi") || check.includes("syria") || check.includes("سوريا") || check.includes("makkah")) methodId = 4;
 
             try {
+                // محاولة جلب البيانات
                 const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(currentCity)}&country=${encodeURIComponent(currentCountry)}&method=${methodId}`;
                 const res = await fetch(url);
-                if (!res.ok) throw new Error('Network response was not ok');
-                
                 const json = await res.json();
+                
+                if (json.code !== 200) throw new Error("API Error");
+
                 const d = json.data;
                 const t = d.timings;
 
+                // تعديل وقت العشاء لتقويم أم القرى (ساعة ونصف بعد المغرب)
                 if (methodId === 4) {
                     let [h, m] = t.Maghrib.split(':').map(Number);
-                    let date = new Date(); 
-                    date.setHours(h, m + 90);
-                    t.Isha = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                    let maghribDate = new Date();
+                    maghribDate.setHours(h, m + 90);
+                    t.Isha = `${String(maghribDate.getHours()).padStart(2, '0')}:${String(maghribDate.getMinutes()).padStart(2, '0')}`;
                 }
 
                 document.getElementById('hijri-date').innerText = `${d.date.hijri.day} ${d.date.hijri.month.ar} ${d.date.hijri.year} هـ`;
@@ -135,50 +139,56 @@
                 document.getElementById('method-display').innerText = `طريقة الحساب: ${translations[d.meta.method.name] || d.meta.method.name}`;
 
                 const names = {Fajr:'الفجر', Sunrise:'الشروق', Dhuhr:'الظهر', Asr:'العصر', Maghrib:'المغرب', Isha:'العشاء'};
-                document.getElementById('list').innerHTML = Object.keys(names).map(k => `
+                listContainer.innerHTML = Object.keys(names).map(k => `
                     <div class="prayer-card">
                         <span class="p-name">${names[k]}</span>
                         <span class="p-time">${to12H(t[k])}</span>
                     </div>
                 `).join('');
-                
-                localStorage.setItem('lastCity', currentCity);
-                localStorage.setItem('lastCountry', currentCountry);
 
             } catch(e) {
-                console.error(e);
-                document.getElementById('list').innerHTML = `
-                    <div style='text-align:center; padding: 20px;'>
-                        <p>خطأ في تحميل البيانات.</p>
-                        <button onclick="loadPrayers()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; cursor:pointer;">إعادة المحاولة</button>
+                console.error("Fetch failed:", e);
+                listContainer.innerHTML = `
+                    <div class="error-msg">
+                        <p>عذراً، فشل تحميل المواقيت.</p>
+                        <button onclick="loadPrayers()" style="padding:8px 15px; border-radius:8px; border:none; background:var(--primary); color:white; cursor:pointer;">إعادة المحاولة</button>
                     </div>`;
-            } finally { loader.style.display = 'none'; }
+            } finally { 
+                loader.style.display = 'none'; 
+            }
         }
 
         function searchCity() {
             let val = document.getElementById('city-input').value.trim();
             if(val) {
                 currentCity = val;
-                currentCountry = ""; 
+                currentCountry = ""; // تركها فارغة للـ API للبحث الأشمل
                 currentOffset = 0;
                 loadPrayers();
             }
         }
 
-        function changeDate(n) { currentOffset += n; loadPrayers(); }
+        function changeDate(n) { 
+            currentOffset += n; 
+            loadPrayers(); 
+        }
 
         window.onload = () => {
-            if (navigator.geolocation && !localStorage.getItem('lastCity')) {
+            if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=en`);
                         const data = await res.json();
-                        currentCity = data.address.city || data.address.town || data.address.village || "Aleppo";
+                        currentCity = data.address.city || data.address.town || data.address.state || "Aleppo";
                         currentCountry = data.address.country || "Syria";
-                    } catch(e) {}
+                    } catch(e) {
+                        console.log("Geo lookup failed, using defaults");
+                    }
                     loadPrayers();
                 }, () => loadPrayers());
-            } else { loadPrayers(); }
+            } else { 
+                loadPrayers(); 
+            }
         };
 
         if ('serviceWorker' in navigator) {

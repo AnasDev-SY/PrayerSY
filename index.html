@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+    <!-- البيانات المنظمة لمحركات البحث -->
     <script type="application/ld+json">
     {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "صلاتي - Salati",
-    "description": "تطبيق لعرض مواقيت الصلاة الدقيقة",
-    "applicationCategory": "LifestyleApplication",
-    "operatingSystem": "All"
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "صلاتي - Salati",
+        "description": "مواقيت صلاة دقيقة مع تحديد تلقائي للمنطقة",
+        "applicationCategory": "LifestyleApplication",
+        "operatingSystem": "All"
     }
     </script>
 
@@ -20,38 +21,26 @@
     <link rel="apple-touch-icon" type="image/png" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     <title>صلاتي - مواقيت الصلاة</title>
 
     <style>
-        :root {
-            --primary: #6750a4;
-            --secondary: #eaddff;
-            --bg: #fef7ff;
-            --text: #1c1b1f;
-        }
-
+        :root { --primary: #6750a4; --secondary: #eaddff; --bg: #fef7ff; --text: #1c1b1f; }
         body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f0f0; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 15px; box-sizing: border-box; }
         .app-container { background-color: var(--bg); width: 100%; max-width: 400px; min-height: 85vh; border-radius: 28px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
-        header { background-color: var(--primary); color: white; padding: 20px; text-align: center; border-radius: 0 0 24px 24px; }
+        header { background-color: var(--primary); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 24px 24px; }
         .date-nav { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.15); border-radius: 12px; margin-bottom: 10px; padding: 5px; }
         .nav-btn { background: none; border: none; color: white; font-size: 1.4rem; cursor: pointer; padding: 5px 15px; }
-        .search-container { padding: 15px 20px; display: flex; flex-direction: column; gap: 8px; }
-        .input-group { display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 12px; border-radius: 12px; border: 2px solid var(--secondary); outline: none; font-size: 1rem; }
-        .search-btn { background: var(--primary); color: white; border: none; padding: 0 15px; border-radius: 12px; cursor: pointer; font-weight: bold; }
-        
-        select { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--secondary); background: white; font-size: 0.9rem; color: var(--text); outline: none; }
-        
+        .search-container { padding: 15px 20px; display: flex; gap: 8px; }
+        input[type="text"] { flex: 1; padding: 14px; border-radius: 14px; border: 2px solid var(--secondary); outline: none; font-size: 1rem; }
+        .search-btn { background: var(--primary); color: white; border: none; padding: 0 18px; border-radius: 14px; cursor: pointer; font-size: 1.2rem; }
         .prayer-list { flex: 1; padding: 0 20px 20px; }
         .prayer-card { background: white; border-radius: 16px; padding: 18px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #eee; }
         .p-name { color: var(--primary); font-weight: 600; font-size: 1.1rem; }
         .p-time { color: var(--text); font-weight: bold; font-size: 1.2rem; }
-        
-        #loader { display: none; color: white; font-size: 0.8rem; margin-top: 5px; }
-        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.4; padding: 10px; }
-        .error-msg { text-align: center; color: #ba1a1a; padding: 20px; font-weight: bold; }
+        #method-info { font-size: 0.7rem; opacity: 0.7; margin-top: 10px; }
+        #loader { display: none; font-size: 0.8rem; margin-top: 5px; }
+        .version-tag { text-align: center; font-size: 0.7rem; opacity: 0.3; padding: 10px; }
     </style>
 </head>
 <body>
@@ -63,28 +52,19 @@
                 <div id="display-date" style="font-weight: bold;">اليوم</div>
                 <button class="nav-btn" onclick="changeDate(1)">❯</button>
             </div>
-            <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9;">...</div>
-            <h2 id="city-display" style="margin: 5px 0; font-size: 1.4rem;">...</h2>
+            <div id="hijri-date" style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px;">...</div>
+            <h2 id="city-display" style="margin: 0; font-size: 1.5rem;">جاري التحديد...</h2>
+            <div id="method-info">...</div>
             <div id="loader">جاري التحديث...</div>
         </header>
 
         <div class="search-container">
-            <div class="input-group">
-                <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: Aleppo)" onkeypress="if(event.key === 'Enter') searchCity()">
-                <button class="search-btn" onclick="searchCity()">🔍</button>
-            </div>
-            <select id="method-select" onchange="loadPrayers()">
-                <option value="3">رابطة العالم الإسلامي</option>
-                <option value="4">أم القرى (مكة المكرمة)</option>
-                <option value="5">الهيئة المصرية العامة للمساحة</option>
-                <option value="2">الجمعية الإسلامية لأمريكا الشمالية (ISNA)</option>
-                <option value="1">جامعة العلوم الإسلامية بكراتشي</option>
-                <option value="8">معهد الجيوفيزياء بتهران</option>
-            </select>
+            <input type="text" id="city-input" placeholder="اسم المدينة (مثلاً: دمشق)" onkeypress="if(event.key === 'Enter') searchCity()">
+            <button class="search-btn" onclick="searchCity()">🔍</button>
         </div>
 
         <div class="prayer-list" id="list"></div>
-        <div class="version-tag">إصدار 1.8.8 - salati</div>
+        <div class="version-tag">صلاتي v1.8.9 - النسخة الكاملة</div>
     </div>
 
     <script>
@@ -92,54 +72,59 @@
         let currentCity = localStorage.getItem('lastCity') || "Aleppo";
         let currentCountry = localStorage.getItem('lastCountry') || "Syria";
 
-        function getFormattedDate(offset) {
-            let d = new Date();
-            d.setDate(d.getDate() + offset);
-            return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
-        }
+        // المصفوفات الذكية لتحديد طريقة الحساب تلقائياً
+        const countryMethods = {
+            4: ["saudi arabia", "syria", "jordan", "lebanon", "palestine", "yemen", "السعودية", "سوريا", "سورية", "الأردن", "لبنان", "فلسطين", "اليمن"],
+            5: ["egypt", "sudan", "libya", "مصر", "السودان", "ليبيا"],
+            1: ["pakistan", "india", "bangladesh", "باكستان", "الهند"],
+            2: ["usa", "canada", "america", "أمريكا", "كندا"]
+        };
 
-        function to12H(time) {
-            if(!time) return "--:--";
-            let [h, m] = time.split(':').map(Number);
-            let mod = h >= 12 ? 'م' : 'ص';
-            h = h % 12 || 12;
-            return `${h}:${String(m).padStart(2, '0')} ${mod}`;
+        const methodNames = {
+            4: "أم القرى", 5: "المساحة المصرية", 1: "جامعة كراتشي", 2: "ISNA (أمريكا)", 3: "رابطة العالم الإسلامي"
+        };
+
+        function getMethodId(locationText) {
+            const text = locationText.toLowerCase();
+            for (let id in countryMethods) {
+                if (countryMethods[id].some(country => text.includes(country.toLowerCase()))) {
+                    return id;
+                }
+            }
+            return 3; // الافتراضي
         }
 
         async function loadPrayers() {
             const loader = document.getElementById('loader');
-            const listContainer = document.getElementById('list');
-            const methodSelect = document.getElementById('method-select');
             const dateStr = getFormattedDate(currentOffset);
-            
             document.getElementById('display-date').innerText = currentOffset === 0 ? "اليوم" : dateStr;
             loader.style.display = 'block';
 
-            const methodId = methodSelect.value;
+            const methodId = getMethodId(currentCity + " " + currentCountry);
 
             try {
                 const url = `https://api.aladhan.com/v1/timingsByCity/${dateStr}?city=${encodeURIComponent(currentCity)}&country=${encodeURIComponent(currentCountry)}&method=${methodId}`;
                 const res = await fetch(url);
                 const json = await res.json();
                 
-                if (json.code !== 200) throw new Error("API Error");
+                if (json.code !== 200) throw new Error();
 
                 const d = json.data;
                 const t = d.timings;
 
-                // تعديل العشاء لتقويم أم القرى (ساعة ونصف بعد المغرب)
-                if (methodId === "4") {
+                // معالجة توقيت أم القرى (العشاء بعد المغرب بـ 90 دقيقة)
+                if (methodId == 4) {
                     let [h, m] = t.Maghrib.split(':').map(Number);
-                    let magDate = new Date();
-                    magDate.setHours(h, m + 90);
+                    let magDate = new Date(); magDate.setHours(h, m + 90);
                     t.Isha = `${String(magDate.getHours()).padStart(2, '0')}:${String(magDate.getMinutes()).padStart(2, '0')}`;
                 }
 
                 document.getElementById('hijri-date').innerText = `${d.date.hijri.day} ${d.date.hijri.month.ar} ${d.date.hijri.year} هـ`;
                 document.getElementById('city-display').innerText = currentCity;
+                document.getElementById('method-info').innerText = `الحساب: ${methodNames[methodId]}`;
 
                 const names = {Fajr:'الفجر', Sunrise:'الشروق', Dhuhr:'الظهر', Asr:'العصر', Maghrib:'المغرب', Isha:'العشاء'};
-                listContainer.innerHTML = Object.keys(names).map(k => `
+                document.getElementById('list').innerHTML = Object.keys(names).map(k => `
                     <div class="prayer-card">
                         <span class="p-name">${names[k]}</span>
                         <span class="p-time">${to12H(t[k])}</span>
@@ -148,31 +133,26 @@
 
                 localStorage.setItem('lastCity', currentCity);
                 localStorage.setItem('lastCountry', currentCountry);
-
             } catch(e) {
-                listContainer.innerHTML = `
-                    <div class="error-msg">
-                        <p>فشل تحميل المواقيت.</p>
-                        <button onclick="loadPrayers()" style="padding:8px 15px; border-radius:8px; border:none; background:var(--primary); color:white; cursor:pointer;">إعادة المحاولة</button>
-                    </div>`;
+                document.getElementById('list').innerHTML = "<p style='text-align:center;'>فشل التحديث. تأكد من الإنترنت.</p>";
             } finally { loader.style.display = 'none'; }
+        }
+
+        function getFormattedDate(offset) {
+            let d = new Date(); d.setDate(d.getDate() + offset);
+            return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+        }
+
+        function to12H(time) {
+            let [h, m] = time.split(':').map(Number);
+            let mod = h >= 12 ? 'م' : 'ص';
+            h = h % 12 || 12;
+            return `${h}:${String(m).padStart(2, '0')} ${mod}`;
         }
 
         function searchCity() {
             let val = document.getElementById('city-input').value.trim();
-            if(val) {
-                currentCity = val;
-                currentCountry = ""; 
-                currentOffset = 0;
-                
-                // تحديد تلقائي للطريقة بناء على الاسم المكتوب قبل التحميل
-                const check = val.toLowerCase();
-                const methodSelect = document.getElementById('method-select');
-                if (check.includes("مصر") || check.includes("egypt") || check.includes("cairo")) methodSelect.value = "5";
-                else if (check.includes("saudi") || check.includes("syria") || check.includes("makkah")) methodSelect.value = "4";
-                
-                loadPrayers();
-            }
+            if(val) { currentCity = val; currentCountry = ""; currentOffset = 0; loadPrayers(); }
         }
 
         function changeDate(n) { currentOffset += n; loadPrayers(); }
@@ -181,7 +161,7 @@
             if (navigator.geolocation && !localStorage.getItem('lastCity')) {
                 navigator.geolocation.getCurrentPosition(async (pos) => {
                     try {
-                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=en`);
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&accept-language=ar`);
                         const data = await res.json();
                         currentCity = data.address.city || data.address.town || "Aleppo";
                         currentCountry = data.address.country || "Syria";
@@ -190,6 +170,13 @@
                 }, () => loadPrayers());
             } else { loadPrayers(); }
         };
+
+        // إعادة تفعيل الـ Service Worker لدعم الـ PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW registration failed'));
+            });
+        }
     </script>
 </body>
 </html>

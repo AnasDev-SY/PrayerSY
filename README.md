@@ -58,7 +58,7 @@
 ### للمطورين:
 ```bash
 # استنساخ المستودع
-git clone [https://github.com/anasdev-sy/PrayerSY.git](https://github.com/anasdev-sy/PrayerSY.git)
+git clone https://github.com/anasdev-sy/PrayerSY.git
 
 # تشغيل المشروع
 cd PrayerSY
